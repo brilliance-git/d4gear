@@ -40,9 +40,8 @@ node bin/cli.js --file fixtures/sample-page.html --variant 1
 ## Web page
 
 `web/index.html` is a small interactive page: pick a variant (e.g. "Early
-Game" vs. "End Game") and a gear slot, and it shows that slot's affix /
-socket / tempering priority, plus a "Build Priorities" section for skill
-points, paragon glyphs, and talismans. It reads its data from `web/data.js`.
+Game" vs. "End Game"), then expand a gear slot's card to see its affix /
+socket / tempering priority. It reads its data from `web/data.js`.
 
 Generate `web/data.js` from a build guide, then open `web/index.html` in a
 browser (or serve the `web/` folder, e.g. via GitHub Pages):
