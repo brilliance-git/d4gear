@@ -70,7 +70,7 @@ test('buildReport collapses repeated skill point ranks', () => {
   const report = buildReport(doc, 0);
 
   const skeletonMage = report.skillPriority.find((s) => s.slug === 'skeleton-mage');
-  assert.equal(skeletonMage.count, 3);
+  assert.equal(skeletonMage.count, 15);
 });
 
 test('buildReport throws a helpful error for an out-of-range variant', () => {

@@ -37,6 +37,24 @@ Options:
 node bin/cli.js --file fixtures/sample-page.html --variant 1
 ```
 
+## Web page
+
+`web/index.html` is a small interactive page: pick a variant (e.g. "Early
+Game" vs. "End Game") and a gear slot, and it shows that slot's affix /
+socket / tempering priority, plus a "Build Priorities" section for skill
+points, paragon glyphs, and talismans. It reads its data from `web/data.js`.
+
+Generate `web/data.js` from a build guide, then open `web/index.html` in a
+browser (or serve the `web/` folder, e.g. via GitHub Pages):
+
+```sh
+node bin/generate-web-data.js "https://mobalytics.gg/diablo-4/builds/<class>-<build-slug>" --out web/data.js
+# or: node bin/generate-web-data.js --file page.html --out web/data.js
+```
+
+The repo ships with `web/data.js` already generated from
+`fixtures/sample-page.html` so the page works out of the box as a demo.
+
 ## Limitations
 
 - Only the **relative order within each category** (affixes / sockets /

@@ -1,0 +1,627 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gear Priority</title>
+<style>
+  :root {
+    --bg: #f3efe6;
+    --surface: #ffffff;
+    --surface-2: #ece6d8;
+    --border: #ddd3bd;
+    --text: #221f2b;
+    --text-muted: #6b6478;
+    --accent: #a85f1d;
+    --accent-soft: #a85f1d1a;
+    --accent-2: #35548f;
+    --accent-2-soft: #35548f1a;
+    --focus: #35548f;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #100e17;
+      --surface: #1b1826;
+      --surface-2: #241f33;
+      --border: #362f4a;
+      --text: #ece8f5;
+      --text-muted: #a099b6;
+      --accent: #dd9a4c;
+      --accent-soft: #dd9a4c26;
+      --accent-2: #86a3e0;
+      --accent-2-soft: #86a3e026;
+      --focus: #86a3e0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #100e17;
+    --surface: #1b1826;
+    --surface-2: #241f33;
+    --border: #362f4a;
+    --text: #ece8f5;
+    --text-muted: #a099b6;
+    --accent: #dd9a4c;
+    --accent-soft: #dd9a4c26;
+    --accent-2: #86a3e0;
+    --accent-2-soft: #86a3e026;
+    --focus: #86a3e0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    padding-inline: 16px;
+  }
+
+  h1, h2, h3, .display {
+    font-family: "Cinzel", Georgia, "Times New Roman", serif;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+
+  .mono {
+    font-family: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--accent-2); }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding-block: 28px 48px;
+  }
+
+  header.top {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--bg);
+    padding-block: 10px 16px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin: 0 0 2px;
+  }
+
+  h1.title {
+    font-size: clamp(22px, 4vw, 28px);
+    margin: 0 0 14px;
+    font-weight: 600;
+  }
+
+  .variant-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .variant-tabs button {
+    font: inherit;
+    font-family: "Public Sans", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .variant-tabs button:hover { border-color: var(--accent-2); }
+  .variant-tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .variant-tabs button[aria-selected="true"] {
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    color: var(--surface);
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  main > * { min-width: 0; }
+
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .slot-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 118px);
+  }
+
+  @media (max-width: 720px) {
+    .slot-rail {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      gap: 8px;
+      padding-bottom: 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  .slot-btn {
+    font: inherit;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .slot-btn:hover { background: var(--surface-2); }
+  .slot-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .slot-btn .slot-name {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .slot-btn .item-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .slot-btn[aria-current="true"] {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+  .slot-btn[aria-current="true"] .slot-name { color: var(--accent); }
+
+  section.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  .panel + .panel { margin-top: 16px; }
+
+  .panel h2 {
+    font-size: 18px;
+    margin: 0 0 2px;
+  }
+
+  .panel .sub {
+    color: var(--text-muted);
+    font-size: 12.5px;
+    margin: 0 0 14px;
+  }
+
+  .cat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 18px 0 8px;
+  }
+  .cat-label:first-of-type { margin-top: 4px; }
+
+  ol.priority-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  ol.priority-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: var(--surface-2);
+  }
+
+  ol.priority-list li.core {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+  }
+  ol.priority-list li:not(.core) { border: 1px solid transparent; }
+
+  ol.priority-list .rank {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 1.4em;
+  }
+  li.core .rank { color: var(--accent); font-weight: 700; }
+
+  ol.priority-list .label { flex: 1; min-width: 0; overflow-wrap: break-word; font-weight: 500; }
+  li.core .label { font-weight: 700; color: var(--accent); }
+
+  .star {
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .count-badge {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--accent-2-soft);
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .legend {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+  }
+  .legend .star { margin-right: 3px; }
+
+  .build-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .build-grid h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+    font-family: "Public Sans", sans-serif;
+    font-weight: 700;
+  }
+
+  .talisman-item {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    margin-bottom: 2px;
+    font-size: 13px;
+  }
+  .talisman-item .t-label { font-weight: 600; }
+  .talisman-item .t-mods { color: var(--text-muted); font-size: 12px; }
+
+  footer {
+    margin-top: 32px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .empty code {
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow" id="build-eyebrow">Diablo 4 Build Priority</p>
+    <h1 class="title" id="build-title">Loading build&hellip;</h1>
+    <div class="variant-tabs" id="variant-tabs" role="tablist" aria-label="Build variant"></div>
+  </header>
+
+  <main id="app-main" hidden>
+    <nav class="slot-rail" id="slot-rail" aria-label="Gear slot"></nav>
+
+    <div>
+      <section class="panel" id="gear-panel">
+        <h2 id="gear-item-name">&mdash;</h2>
+        <p class="sub" id="gear-slot-name">&mdash;</p>
+        <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
+        <div id="gear-detail"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Build Priorities</h2>
+        <p class="sub">Not slot-specific &mdash; skill points, paragon glyphs, and talismans for this variant.</p>
+        <div class="build-grid">
+          <div>
+            <h3>Assigned Skills</h3>
+            <ol class="priority-list" id="assigned-skills"></ol>
+          </div>
+          <div>
+            <h3>Skill Point Priority</h3>
+            <ol class="priority-list" id="skill-priority"></ol>
+          </div>
+          <div>
+            <h3>Paragon Glyph Priority</h3>
+            <ol class="priority-list" id="paragon-priority"></ol>
+          </div>
+          <div>
+            <h3>Talisman Priority</h3>
+            <div id="talisman-priority"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="empty" id="empty-state">
+    <p>No build data loaded.</p>
+    <p>Generate it with:<br><code>node bin/generate-web-data.js &lt;mobalytics-build-url&gt; --out web/data.js</code></p>
+  </div>
+
+  <footer>
+    Extracted from a Mobalytics build guide's own priority data. Order within each
+    category (affixes / sockets / tempering) reflects the guide's stated priority;
+    categories are kept separate rather than merged, since their relative order
+    isn't consistent across item types.
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var data = window.D4_BUILD_DATA;
+  var emptyEl = document.getElementById('empty-state');
+  var mainEl = document.getElementById('app-main');
+
+  if (!data || !data.variants || !data.variants.length) {
+    emptyEl.hidden = false;
+    mainEl.hidden = true;
+    return;
+  }
+  emptyEl.hidden = true;
+  mainEl.hidden = false;
+
+  var SLOT_ORDER = [
+    'helm', 'chest-armor', 'gloves', 'pants', 'boots',
+    'amulet', 'ring-1', 'ring-2', 'weapon', 'offhand',
+  ];
+
+  function slotRank(slug) {
+    var i = SLOT_ORDER.indexOf(slug);
+    return i === -1 ? SLOT_ORDER.length : i;
+  }
+
+  var state = { variantIndex: 0, slotSlug: null };
+
+  document.getElementById('build-eyebrow').textContent = 'Diablo 4 Build Priority';
+  document.getElementById('build-title').textContent = data.buildName;
+
+  var tabsEl = document.getElementById('variant-tabs');
+  data.variants.forEach(function (v, i) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.role = 'tab';
+    btn.textContent = v.variantTitle;
+    btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    btn.addEventListener('click', function () { selectVariant(i); });
+    tabsEl.appendChild(btn);
+  });
+
+  function currentVariant() {
+    return data.variants[state.variantIndex];
+  }
+
+  function sortedGear(variant) {
+    return variant.gear.slice().sort(function (a, b) {
+      return slotRank(a.slotSlug) - slotRank(b.slotSlug);
+    });
+  }
+
+  function selectVariant(i) {
+    state.variantIndex = i;
+    Array.prototype.forEach.call(tabsEl.children, function (btn, idx) {
+      btn.setAttribute('aria-selected', idx === i ? 'true' : 'false');
+    });
+
+    var gear = sortedGear(currentVariant());
+    var stillPresent = gear.some(function (g) { return g.slotSlug === state.slotSlug; });
+    if (!stillPresent) {
+      state.slotSlug = gear.length ? gear[0].slotSlug : null;
+    }
+
+    renderSlotRail();
+    renderGearDetail();
+    renderBuildPriorities();
+  }
+
+  function renderSlotRail() {
+    var railEl = document.getElementById('slot-rail');
+    railEl.innerHTML = '';
+    sortedGear(currentVariant()).forEach(function (g) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'slot-btn';
+      btn.setAttribute('aria-current', g.slotSlug === state.slotSlug ? 'true' : 'false');
+      var slotNameEl = document.createElement('span');
+      slotNameEl.className = 'slot-name';
+      slotNameEl.textContent = g.slot;
+      var itemNameEl = document.createElement('span');
+      itemNameEl.className = 'item-name';
+      itemNameEl.textContent = g.item;
+      btn.appendChild(slotNameEl);
+      btn.appendChild(itemNameEl);
+      btn.addEventListener('click', function () {
+        state.slotSlug = g.slotSlug;
+        renderSlotRail();
+        renderGearDetail();
+      });
+      railEl.appendChild(btn);
+    });
+  }
+
+  function priorityListItems(items, opts) {
+    opts = opts || {};
+    var frag = document.createDocumentFragment();
+    items.forEach(function (item, i) {
+      var li = document.createElement('li');
+      if (opts.core && item.core) li.className = 'core';
+      var rank = document.createElement('span');
+      rank.className = 'rank mono';
+      rank.textContent = (i + 1) + '.';
+      var label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = item.label;
+      li.appendChild(rank);
+      li.appendChild(label);
+      if (opts.core && item.core) {
+        var star = document.createElement('span');
+        star.className = 'star';
+        star.textContent = '★';
+        li.appendChild(star);
+      }
+      frag.appendChild(li);
+    });
+    return frag;
+  }
+
+  function renderGearDetail() {
+    var gear = sortedGear(currentVariant());
+    var g = gear.filter(function (x) { return x.slotSlug === state.slotSlug; })[0];
+    var detailEl = document.getElementById('gear-detail');
+    detailEl.innerHTML = '';
+
+    if (!g) {
+      document.getElementById('gear-item-name').textContent = 'No gear data';
+      document.getElementById('gear-slot-name').textContent = '';
+      return;
+    }
+
+    document.getElementById('gear-item-name').textContent = g.item;
+    document.getElementById('gear-slot-name').textContent = g.slot;
+
+    if (g.priority.affixes.length) {
+      var affixLabel = document.createElement('p');
+      affixLabel.className = 'cat-label';
+      affixLabel.textContent = 'Affix priority';
+      var affixList = document.createElement('ol');
+      affixList.className = 'priority-list';
+      affixList.appendChild(priorityListItems(g.priority.affixes, { core: true }));
+      detailEl.appendChild(affixLabel);
+      detailEl.appendChild(affixList);
+    }
+
+    if (g.priority.sockets.length) {
+      var socketLabel = document.createElement('p');
+      socketLabel.className = 'cat-label';
+      socketLabel.textContent = 'Sockets';
+      var socketList = document.createElement('ol');
+      socketList.className = 'priority-list';
+      socketList.appendChild(priorityListItems(g.priority.sockets));
+      detailEl.appendChild(socketLabel);
+      detailEl.appendChild(socketList);
+    }
+
+    if (g.priority.tempering.length) {
+      var temperLabel = document.createElement('p');
+      temperLabel.className = 'cat-label';
+      temperLabel.textContent = 'Tempering priority';
+      var temperList = document.createElement('ol');
+      temperList.className = 'priority-list';
+      temperList.appendChild(priorityListItems(g.priority.tempering, { core: true }));
+      detailEl.appendChild(temperLabel);
+      detailEl.appendChild(temperList);
+    }
+  }
+
+  function renderBuildPriorities() {
+    var v = currentVariant();
+
+    var assignedEl = document.getElementById('assigned-skills');
+    assignedEl.innerHTML = '';
+    v.assignedSkills.forEach(function (s) {
+      var li = document.createElement('li');
+      var rank = document.createElement('span');
+      rank.className = 'rank mono';
+      rank.textContent = s.position + '.';
+      var label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = s.name;
+      li.appendChild(rank);
+      li.appendChild(label);
+      assignedEl.appendChild(li);
+    });
+
+    var skillEl = document.getElementById('skill-priority');
+    skillEl.innerHTML = '';
+    v.skillPriority.forEach(function (s, i) {
+      var li = document.createElement('li');
+      var rank = document.createElement('span');
+      rank.className = 'rank mono';
+      rank.textContent = (i + 1) + '.';
+      var label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = s.label;
+      li.appendChild(rank);
+      li.appendChild(label);
+      if (s.count > 1) {
+        var badge = document.createElement('span');
+        badge.className = 'count-badge mono';
+        badge.textContent = '×' + s.count;
+        li.appendChild(badge);
+      }
+      skillEl.appendChild(li);
+    });
+
+    var paragonEl = document.getElementById('paragon-priority');
+    paragonEl.innerHTML = '';
+    v.paragonPriority.forEach(function (p, i) {
+      var li = document.createElement('li');
+      var rank = document.createElement('span');
+      rank.className = 'rank mono';
+      rank.textContent = (i + 1) + '.';
+      var label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = p.label + (p.isGlyph ? ' (glyph)' : '');
+      li.appendChild(rank);
+      li.appendChild(label);
+      paragonEl.appendChild(li);
+    });
+
+    var talismanEl = document.getElementById('talisman-priority');
+    talismanEl.innerHTML = '';
+    v.talismanPriority.forEach(function (t, i) {
+      var div = document.createElement('div');
+      div.className = 'talisman-item';
+      var label = document.createElement('div');
+      label.className = 't-label';
+      label.textContent = (i + 1) + '. ' + t.item;
+      div.appendChild(label);
+      if (t.priority.length) {
+        var mods = document.createElement('div');
+        mods.className = 't-mods';
+        mods.textContent = t.priority.join(', ');
+        div.appendChild(mods);
+      }
+      talismanEl.appendChild(div);
+    });
+  }
+
+  selectVariant(0);
+})();
+</script>
