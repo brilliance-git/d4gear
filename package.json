@@ -1,0 +1,16 @@
+{
+  "name": "d4gear",
+  "version": "0.1.0",
+  "description": "Extract skill/gear/paragon priority lists from Mobalytics Diablo 4 build guides",
+  "private": true,
+  "license": "MIT",
+  "bin": {
+    "mobalytics-priority": "./bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
