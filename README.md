@@ -39,19 +39,37 @@ node bin/cli.js --file fixtures/sample-page.html --variant 1
 
 ## Web page
 
-`web/index.html` is a small interactive page: pick a variant (e.g. "Early
-Game" vs. "End Game"), then expand a gear slot's card to see its affix /
-socket / tempering priority. It reads its data from `web/data.js`.
+`web/index.html` is a small interactive page: pick a **saved build** from
+the dropdown, pick a variant (e.g. "Early Game" vs. "End Game"), then expand
+a gear slot's card to see its affix / socket / tempering priority. It reads
+its data from `web/data.js`, which holds a *library* of builds — the page
+remembers (via `localStorage`, per-browser) which build you had open last.
 
-Generate `web/data.js` from a build guide, then open `web/index.html` in a
-browser (or serve the `web/` folder, e.g. via GitHub Pages):
+Manage that library with `bin/generate-web-data.js`. Adding a build is
+matched by the guide's own Mobalytics slug, so running it again against the
+same guide **updates that build in place** instead of duplicating it —
+running it against a different guide **adds** a new one alongside what's
+already there:
 
 ```sh
+# Add or update a build (fetches the URL)
 node bin/generate-web-data.js "https://mobalytics.gg/diablo-4/builds/<class>-<build-slug>" --out web/data.js
-# or: node bin/generate-web-data.js --file page.html --out web/data.js
+
+# ...or from a locally saved page
+node bin/generate-web-data.js --file page.html --out web/data.js
+
+# See what's currently saved
+node bin/generate-web-data.js --list --out web/data.js
+
+# Drop a build you no longer want (slug printed by --list)
+node bin/generate-web-data.js --remove <buildSlug> --out web/data.js
 ```
 
-The repo ships with `web/data.js` already generated from
+Then open `web/index.html` in a browser (or serve the `web/` folder, e.g.
+via GitHub Pages) — no rebuild step needed, it just reads the updated
+`data.js`.
+
+The repo ships with one build already generated from
 `fixtures/sample-page.html` so the page works out of the box as a demo.
 
 ## Limitations

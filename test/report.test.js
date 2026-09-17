@@ -7,7 +7,7 @@ const path = require('path');
 
 const { extractPreloadedState } = require('../lib/extractState');
 const { findBuildDocument } = require('../lib/findBuildDoc');
-const { buildReport } = require('../lib/buildReport');
+const { buildReport, buildAllVariantsReport } = require('../lib/buildReport');
 
 const fixtureHtml = fs.readFileSync(
   path.join(__dirname, '..', 'fixtures', 'sample-page.html'),
@@ -77,4 +77,14 @@ test('buildReport throws a helpful error for an out-of-range variant', () => {
   const state = extractPreloadedState(fixtureHtml);
   const doc = findBuildDocument(state);
   assert.throws(() => buildReport(doc, 99), /out of range/);
+});
+
+test('buildAllVariantsReport includes a stable buildSlug for library dedup', () => {
+  const state = extractPreloadedState(fixtureHtml);
+  const doc = findBuildDocument(state);
+  const report = buildAllVariantsReport(doc);
+
+  assert.equal(report.buildSlug, 'ring-of-power-mages');
+  assert.equal(report.buildName, 'Skeletal Warrior Minions');
+  assert.equal(report.variants.length, 2);
 });

@@ -85,6 +85,14 @@
     border-bottom: 1px solid var(--border);
   }
 
+  .header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
   .eyebrow {
     font-size: 11px;
     text-transform: uppercase;
@@ -92,6 +100,21 @@
     color: var(--text-muted);
     margin: 0 0 2px;
   }
+
+  .build-select {
+    font: inherit;
+    font-family: "Public Sans", sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    max-width: 100%;
+  }
+  .build-select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
   h1.title {
     font-size: clamp(22px, 4vw, 28px);
@@ -258,7 +281,10 @@
 
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow" id="build-eyebrow">Diablo 4 Build Priority</p>
+    <div class="header-row">
+      <p class="eyebrow">Diablo 4 Build Priority</p>
+      <select class="build-select" id="build-select" aria-label="Saved build"></select>
+    </div>
     <h1 class="title" id="build-title">Loading build&hellip;</h1>
     <div class="variant-tabs" id="variant-tabs" role="tablist" aria-label="Build variant"></div>
   </header>
@@ -269,8 +295,8 @@
   </main>
 
   <div class="empty" id="empty-state">
-    <p>No build data loaded.</p>
-    <p>Generate it with:<br><code>node bin/generate-web-data.js &lt;mobalytics-build-url&gt; --out web/data.js</code></p>
+    <p>No builds saved yet.</p>
+    <p>Add one with:<br><code>node bin/generate-web-data.js &lt;mobalytics-build-url&gt; --out web/data.js</code></p>
   </div>
 
   <footer>
@@ -288,7 +314,7 @@
   var emptyEl = document.getElementById('empty-state');
   var mainEl = document.getElementById('app-main');
 
-  if (!data || !data.variants || !data.variants.length) {
+  if (!data || !data.builds || !data.builds.length) {
     emptyEl.hidden = false;
     mainEl.hidden = true;
     return;
@@ -300,35 +326,75 @@
     'helm', 'chest-armor', 'gloves', 'pants', 'boots',
     'amulet', 'ring-1', 'ring-2', 'weapon', 'offhand',
   ];
+  var LAST_BUILD_KEY = 'd4gear.lastBuildSlug';
 
   function slotRank(slug) {
     var i = SLOT_ORDER.indexOf(slug);
     return i === -1 ? SLOT_ORDER.length : i;
   }
 
-  var state = { variantIndex: 0 };
+  function safeGet(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function safeSet(key, value) {
+    try { window.localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+  }
 
-  document.getElementById('build-eyebrow').textContent = 'Diablo 4 Build Priority';
-  document.getElementById('build-title').textContent = data.buildName;
+  var state = { buildIndex: 0, variantIndex: 0 };
 
-  var tabsEl = document.getElementById('variant-tabs');
-  data.variants.forEach(function (v, i) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.role = 'tab';
-    btn.textContent = v.variantTitle;
-    btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
-    btn.addEventListener('click', function () { selectVariant(i); });
-    tabsEl.appendChild(btn);
+  var savedSlug = safeGet(LAST_BUILD_KEY);
+  if (savedSlug) {
+    var savedIndex = data.builds.findIndex(function (b) { return b.buildSlug === savedSlug; });
+    if (savedIndex !== -1) state.buildIndex = savedIndex;
+  }
+
+  var selectEl = document.getElementById('build-select');
+  data.builds.forEach(function (b, i) {
+    var opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = b.buildName;
+    selectEl.appendChild(opt);
+  });
+  selectEl.addEventListener('change', function () {
+    selectBuild(parseInt(selectEl.value, 10));
   });
 
+  var tabsEl = document.getElementById('variant-tabs');
+
+  function currentBuild() {
+    return data.builds[state.buildIndex];
+  }
+
   function currentVariant() {
-    return data.variants[state.variantIndex];
+    return currentBuild().variants[state.variantIndex];
   }
 
   function sortedGear(variant) {
     return variant.gear.slice().sort(function (a, b) {
       return slotRank(a.slotSlug) - slotRank(b.slotSlug);
+    });
+  }
+
+  function selectBuild(i) {
+    state.buildIndex = i;
+    state.variantIndex = 0;
+    selectEl.value = String(i);
+    safeSet(LAST_BUILD_KEY, currentBuild().buildSlug);
+    document.getElementById('build-title').textContent = currentBuild().buildName;
+    renderVariantTabs();
+    renderSlotCards();
+  }
+
+  function renderVariantTabs() {
+    tabsEl.innerHTML = '';
+    currentBuild().variants.forEach(function (v, i) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.role = 'tab';
+      btn.textContent = v.variantTitle;
+      btn.setAttribute('aria-selected', i === state.variantIndex ? 'true' : 'false');
+      btn.addEventListener('click', function () { selectVariant(i); });
+      tabsEl.appendChild(btn);
     });
   }
 
@@ -449,6 +515,6 @@
     });
   }
 
-  selectVariant(0);
+  selectBuild(state.buildIndex);
 })();
 </script>
