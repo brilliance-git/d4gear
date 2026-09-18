@@ -35,7 +35,5 @@ jobs:
             echo "No changes to commit (build already up to date)."
             exit 0
           fi
-          git commit -m "Import build from Mobalytics
-
-Source: ${{ inputs.url }}"
+          git commit -m "Import build from Mobalytics" -m "Source: ${{ inputs.url }}"
           git push
