@@ -6,6 +6,7 @@ const { extractPreloadedState } = require('../lib/extractState');
 const { findBuildDocument } = require('../lib/findBuildDoc');
 const { buildReport } = require('../lib/buildReport');
 const { formatReportText } = require('../lib/formatText');
+const { BROWSER_HEADERS } = require('../lib/httpHeaders');
 
 function parseArgs(argv) {
   const args = { variant: 0, json: false, file: null, url: null };
@@ -42,9 +43,7 @@ async function loadHtml(args) {
   if (args.file) {
     return fs.readFileSync(args.file, 'utf8');
   }
-  const res = await fetch(args.url, {
-    headers: { 'user-agent': 'Mozilla/5.0 (compatible; d4gear-priority-tool/1.0)' },
-  });
+  const res = await fetch(args.url, { headers: BROWSER_HEADERS });
   if (!res.ok) {
     throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
   }
