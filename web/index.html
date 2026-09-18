@@ -158,6 +158,17 @@
   }
   .legend .star { margin-right: 3px; }
 
+  .import-hint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .import-hint a { color: var(--accent-2); font-weight: 600; }
+
   #slot-cards {
     display: flex;
     flex-direction: column;
@@ -290,6 +301,12 @@
   </header>
 
   <main id="app-main" hidden>
+    <p class="import-hint">
+      Want to add another build? Go to the repo's
+      <a href="https://github.com/brilliance-git/d4gear/actions/workflows/import-build.yml" target="_blank" rel="noopener">Import Mobalytics build</a>
+      action, click "Run workflow", and paste the build's URL &mdash; it fetches
+      the guide, updates the data here, and redeploys this page automatically.
+    </p>
     <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
     <div id="slot-cards"></div>
   </main>

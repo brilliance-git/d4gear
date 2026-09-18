@@ -15,7 +15,25 @@ Note: `isGreater` / `isMasterwork` flags on an affix (shown here with a
 `★`) are what Mobalytics highlights in orange on the site — i.e. the
 "core"/Greater-Affix-worthy stats.
 
-## Usage
+## Importing a build (no terminal needed)
+
+The repo has a **self-service importer**: a GitHub Actions workflow you
+trigger from the GitHub web UI.
+
+1. Go to the repo's **Actions** tab → **Import Mobalytics build** (in the
+   sidebar) → **Run workflow**.
+2. Paste the build guide's URL (e.g.
+   `https://mobalytics.gg/diablo-4/builds/necromancer-mages-necro-guide`) →
+   **Run workflow**.
+
+That fetches the page (from GitHub's runner, not your browser — no CORS
+issues), extracts the priority data, commits the update to `web/data.js`
+on `main`, and — since the Pages deploy workflow watches `web/**` — the
+live site redeploys automatically a few seconds later. Re-running it
+against the same guide updates that build in place; a different guide adds
+a new one alongside what's already there. See `.github/workflows/import-build.yml`.
+
+## CLI usage
 
 ```sh
 node bin/cli.js "https://mobalytics.gg/diablo-4/builds/<class>-<build-slug>"
@@ -45,7 +63,8 @@ a gear slot's card to see its affix / socket / tempering priority. It reads
 its data from `web/data.js`, which holds a *library* of builds — the page
 remembers (via `localStorage`, per-browser) which build you had open last.
 
-Manage that library with `bin/generate-web-data.js`. Adding a build is
+The easiest way to add a build is the **Actions importer** above. You can
+also manage the library locally with `bin/generate-web-data.js`. Adding a build is
 matched by the guide's own Mobalytics slug, so running it again against the
 same guide **updates that build in place** instead of duplicating it —
 running it against a different guide **adds** a new one alongside what's
