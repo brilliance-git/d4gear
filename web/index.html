@@ -163,7 +163,7 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px 18px;
-    margin-bottom: 16px;
+    margin-top: 24px;
   }
 
   .import-panel h2 {
@@ -390,6 +390,16 @@
   </header>
 
   <main id="app-main" hidden>
+    <div id="no-builds-message" class="empty" hidden>
+      <p>No builds yet &mdash; use the importer below to add your first one.</p>
+    </div>
+
+    <div id="build-content">
+      <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
+      <button type="button" class="btn btn-danger" id="remove-build-btn" hidden style="margin-bottom: 12px;">Remove this build from my browser</button>
+      <div id="slot-cards"></div>
+    </div>
+
     <section class="import-panel">
       <h2>Add a build</h2>
       <p class="sub">
@@ -410,16 +420,6 @@
         <button type="button" class="btn" id="download-data-btn">Download data.js (to commit permanently)</button>
       </div>
     </section>
-
-    <div id="no-builds-message" class="empty" hidden>
-      <p>No builds yet &mdash; use the importer above to add your first one.</p>
-    </div>
-
-    <div id="build-content">
-      <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
-      <button type="button" class="btn btn-danger" id="remove-build-btn" hidden style="margin-bottom: 12px;">Remove this build from my browser</button>
-      <div id="slot-cards"></div>
-    </div>
   </main>
 
   <footer>
