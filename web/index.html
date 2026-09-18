@@ -158,16 +158,105 @@
   }
   .legend .star { margin-right: 3px; }
 
-  .import-hint {
+  .import-panel {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     margin-bottom: 16px;
-    font-size: 13px;
-    color: var(--text-muted);
   }
-  .import-hint a { color: var(--accent-2); font-weight: 600; }
+
+  .import-panel h2 {
+    font-size: 15px;
+    margin: 0 0 4px;
+  }
+
+  .import-panel .sub {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+  }
+  .import-panel .sub a { color: var(--accent-2); }
+
+  .bookmarklet-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    font-family: "Public Sans", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px dashed var(--accent-2);
+    background: var(--accent-2-soft);
+    color: var(--accent-2);
+    text-decoration: none;
+    cursor: grab;
+  }
+
+  .dropzone {
+    margin-top: 12px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .dropzone.drag {
+    border-color: var(--accent-2);
+    background: var(--accent-2-soft);
+    color: var(--accent-2);
+  }
+  .dropzone input[type="file"] { display: none; }
+
+  .import-status {
+    font-size: 12.5px;
+    margin: 10px 0 0;
+  }
+  .import-status[data-kind="error"] { color: #c05a3d; }
+  .import-status[data-kind="success"] { color: var(--accent-2); }
+
+  .import-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font: inherit;
+    font-family: "Public Sans", sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent-2); color: var(--accent-2); }
+  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .btn-danger:hover { border-color: #c05a3d; color: #c05a3d; }
+
+  .build-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--accent-2-soft);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
 
   #slot-cards {
     display: flex;
@@ -296,25 +385,42 @@
       <p class="eyebrow">Diablo 4 Build Priority</p>
       <select class="build-select" id="build-select" aria-label="Saved build"></select>
     </div>
-    <h1 class="title" id="build-title">Loading build&hellip;</h1>
+    <h1 class="title" id="build-title">Loading build&hellip;<span class="build-badge" id="build-badge" hidden>Imported</span></h1>
     <div class="variant-tabs" id="variant-tabs" role="tablist" aria-label="Build variant"></div>
   </header>
 
   <main id="app-main" hidden>
-    <p class="import-hint">
-      Want to add another build? Go to the repo's
-      <a href="https://github.com/brilliance-git/d4gear/actions/workflows/import-build.yml" target="_blank" rel="noopener">Import Mobalytics build</a>
-      action, click "Run workflow", and paste the build's URL &mdash; it fetches
-      the guide, updates the data here, and redeploys this page automatically.
-    </p>
-    <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
-    <div id="slot-cards"></div>
-  </main>
+    <section class="import-panel">
+      <h2>Add a build</h2>
+      <p class="sub">
+        Drag this to your bookmarks bar, then click it while viewing any
+        <a href="https://mobalytics.gg/diablo-4/builds" target="_blank" rel="noopener">Mobalytics build guide</a>
+        &mdash; it exports a small file, no fetching from this site required.
+      </p>
+      <a class="bookmarklet-link" id="bookmarklet-link" href="#" title="Drag me to your bookmarks bar">&#128229; Export D4 Build</a>
 
-  <div class="empty" id="empty-state">
-    <p>No builds saved yet.</p>
-    <p>Add one with:<br><code>node bin/generate-web-data.js &lt;mobalytics-build-url&gt; --out web/data.js</code></p>
-  </div>
+      <div class="dropzone" id="import-drop" tabindex="0" role="button" aria-label="Drop or choose an exported build file">
+        Drop the exported file here, or click to choose it
+        <input type="file" id="import-file" accept="application/json,.json">
+      </div>
+      <p class="import-status" id="import-status" hidden></p>
+
+      <div class="import-actions">
+        <span class="import-status" style="margin:0;">Builds save to this browser only.</span>
+        <button type="button" class="btn" id="download-data-btn">Download data.js (to commit permanently)</button>
+      </div>
+    </section>
+
+    <div id="no-builds-message" class="empty" hidden>
+      <p>No builds yet &mdash; use the importer above to add your first one.</p>
+    </div>
+
+    <div id="build-content">
+      <p class="legend"><span class="star">&#9733;</span> = core stat worth chasing as a Greater Affix / masterwork crit</p>
+      <button type="button" class="btn btn-danger" id="remove-build-btn" hidden style="margin-bottom: 12px;">Remove this build from my browser</button>
+      <div id="slot-cards"></div>
+    </div>
+  </main>
 
   <footer>
     Extracted from a Mobalytics build guide's own priority data. Order within each
@@ -327,16 +433,9 @@
 <script src="data.js"></script>
 <script>
 (function () {
-  var data = window.D4_BUILD_DATA;
-  var emptyEl = document.getElementById('empty-state');
   var mainEl = document.getElementById('app-main');
-
-  if (!data || !data.builds || !data.builds.length) {
-    emptyEl.hidden = false;
-    mainEl.hidden = true;
-    return;
-  }
-  emptyEl.hidden = true;
+  var noBuildsEl = document.getElementById('no-builds-message');
+  var buildContentEl = document.getElementById('build-content');
   mainEl.hidden = false;
 
   var SLOT_ORDER = [
@@ -344,6 +443,7 @@
     'amulet', 'ring-1', 'ring-2', 'weapon', 'offhand',
   ];
   var LAST_BUILD_KEY = 'd4gear.lastBuildSlug';
+  var IMPORTED_KEY = 'd4gear.importedBuilds';
 
   function slotRank(slug) {
     var i = SLOT_ORDER.indexOf(slug);
@@ -357,29 +457,54 @@
     try { window.localStorage.setItem(key, value); } catch (e) { /* ignore */ }
   }
 
-  var state = { buildIndex: 0, variantIndex: 0 };
-
-  var savedSlug = safeGet(LAST_BUILD_KEY);
-  if (savedSlug) {
-    var savedIndex = data.builds.findIndex(function (b) { return b.buildSlug === savedSlug; });
-    if (savedIndex !== -1) state.buildIndex = savedIndex;
+  function loadImported() {
+    try {
+      var raw = safeGet(IMPORTED_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveImported(list) {
+    safeSet(IMPORTED_KEY, JSON.stringify(list));
+  }
+  function upsertImported(entry) {
+    var list = loadImported();
+    var idx = list.findIndex(function (b) { return b.buildSlug === entry.buildSlug; });
+    if (idx === -1) list.push(entry); else list[idx] = entry;
+    saveImported(list);
+  }
+  function removeImported(slug) {
+    saveImported(loadImported().filter(function (b) { return b.buildSlug !== slug; }));
   }
 
-  var selectEl = document.getElementById('build-select');
-  data.builds.forEach(function (b, i) {
-    var opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = b.buildName;
-    selectEl.appendChild(opt);
-  });
-  selectEl.addEventListener('change', function () {
-    selectBuild(parseInt(selectEl.value, 10));
-  });
+  // Builtin builds (shipped in data.js) and imported ones (this browser's
+  // localStorage) are merged by buildSlug, with imports taking precedence -
+  // re-importing a build you already have refreshes it.
+  function computeBuilds() {
+    var builtins = (window.D4_BUILD_DATA && window.D4_BUILD_DATA.builds) || [];
+    var imported = loadImported();
+    var bySlug = {};
+    var order = [];
+    builtins.forEach(function (b) {
+      bySlug[b.buildSlug] = Object.assign({ origin: 'builtin' }, b);
+      order.push(b.buildSlug);
+    });
+    imported.forEach(function (b) {
+      if (!bySlug.hasOwnProperty(b.buildSlug)) order.push(b.buildSlug);
+      bySlug[b.buildSlug] = Object.assign({}, b, { origin: 'imported' });
+    });
+    return order.map(function (slug) { return bySlug[slug]; });
+  }
 
+  var builds = computeBuilds();
+  var state = { buildIndex: 0, variantIndex: 0 };
+
+  var selectEl = document.getElementById('build-select');
   var tabsEl = document.getElementById('variant-tabs');
+  var badgeEl = document.getElementById('build-badge');
+  var removeBtn = document.getElementById('remove-build-btn');
 
   function currentBuild() {
-    return data.builds[state.buildIndex];
+    return builds[state.buildIndex];
   }
 
   function currentVariant() {
@@ -392,15 +517,63 @@
     });
   }
 
+  function renderBuildSelect() {
+    selectEl.innerHTML = '';
+    builds.forEach(function (b, i) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = b.buildName;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  // Recomputes the merged build list (after an import/removal) and shows
+  // `preferSlug` if given, else keeps the current build if it still exists,
+  // else falls back to the first build.
+  function refreshBuilds(preferSlug) {
+    builds = computeBuilds();
+
+    if (builds.length === 0) {
+      noBuildsEl.hidden = false;
+      buildContentEl.hidden = true;
+      selectEl.innerHTML = '';
+      tabsEl.innerHTML = '';
+      document.getElementById('build-title').firstChild.textContent = 'No builds yet';
+      badgeEl.hidden = true;
+      return;
+    }
+    noBuildsEl.hidden = true;
+    buildContentEl.hidden = false;
+
+    renderBuildSelect();
+    var target = preferSlug || (currentBuild() && currentBuild().buildSlug) || safeGet(LAST_BUILD_KEY);
+    var idx = builds.findIndex(function (b) { return b.buildSlug === target; });
+    selectBuild(idx === -1 ? 0 : idx);
+  }
+
+  selectEl.addEventListener('change', function () {
+    selectBuild(parseInt(selectEl.value, 10));
+  });
+
   function selectBuild(i) {
     state.buildIndex = i;
     state.variantIndex = 0;
     selectEl.value = String(i);
     safeSet(LAST_BUILD_KEY, currentBuild().buildSlug);
-    document.getElementById('build-title').textContent = currentBuild().buildName;
+    document.getElementById('build-title').firstChild.textContent = currentBuild().buildName;
+    badgeEl.hidden = currentBuild().origin !== 'imported';
+    removeBtn.hidden = currentBuild().origin !== 'imported';
     renderVariantTabs();
     renderSlotCards();
   }
+
+  removeBtn.addEventListener('click', function () {
+    var b = currentBuild();
+    if (b.origin !== 'imported') return;
+    if (!window.confirm('Remove "' + b.buildName + '" from this browser? This only affects your local imports, not the site\'s built-in builds.')) return;
+    removeImported(b.buildSlug);
+    refreshBuilds();
+  });
 
   function renderVariantTabs() {
     tabsEl.innerHTML = '';
@@ -532,6 +705,85 @@
     });
   }
 
-  selectBuild(state.buildIndex);
+  // Build the bookmarklet href from bookmarklet.js's own source (same
+  // origin), so that file stays the single source of truth for its logic.
+  fetch('bookmarklet.js')
+    .then(function (res) { return res.text(); })
+    .then(function (src) {
+      document.getElementById('bookmarklet-link').href = 'javascript:' + encodeURIComponent(src);
+    })
+    .catch(function () { /* link stays a no-op "#" if this fails */ });
+
+  var importStatusEl = document.getElementById('import-status');
+  function showImportStatus(message, kind) {
+    importStatusEl.hidden = false;
+    importStatusEl.textContent = message;
+    importStatusEl.dataset.kind = kind;
+  }
+
+  function handleImportFile(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var entry;
+      try {
+        entry = JSON.parse(reader.result);
+      } catch (e) {
+        showImportStatus('That file is not valid JSON.', 'error');
+        return;
+      }
+      if (!entry || !entry.buildSlug || !entry.variants || !entry.variants.length) {
+        showImportStatus('That does not look like an exported build file.', 'error');
+        return;
+      }
+      upsertImported(entry);
+      refreshBuilds(entry.buildSlug);
+      showImportStatus('Imported "' + entry.buildName + '".', 'success');
+    };
+    reader.onerror = function () {
+      showImportStatus('Could not read that file.', 'error');
+    };
+    reader.readAsText(file);
+  }
+
+  var dropZone = document.getElementById('import-drop');
+  var fileInput = document.getElementById('import-file');
+  dropZone.addEventListener('click', function () { fileInput.click(); });
+  dropZone.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files[0]) handleImportFile(fileInput.files[0]);
+    fileInput.value = '';
+  });
+  dropZone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropZone.classList.add('drag');
+  });
+  dropZone.addEventListener('dragleave', function () {
+    dropZone.classList.remove('drag');
+  });
+  dropZone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropZone.classList.remove('drag');
+    if (e.dataTransfer.files[0]) handleImportFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('download-data-btn').addEventListener('click', function () {
+    var merged = computeBuilds().map(function (b) {
+      var copy = Object.assign({}, b);
+      delete copy.origin;
+      return copy;
+    });
+    var contents = 'window.D4_BUILD_DATA = ' + JSON.stringify({ builds: merged }, null, 2) + ';\n';
+    var blob = new Blob([contents], { type: 'text/javascript' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'data.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  refreshBuilds(safeGet(LAST_BUILD_KEY));
 })();
 </script>

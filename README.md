@@ -17,21 +17,28 @@ Note: `isGreater` / `isMasterwork` flags on an affix (shown here with a
 
 ## Importing a build (no terminal needed)
 
-The repo has a **self-service importer**: a GitHub Actions workflow you
-trigger from the GitHub web UI.
+The live page has a **bookmarklet importer**. Fetching Mobalytics from a
+server (a GitHub Action, a normal backend) gets a 403 — their CDN blocks
+known cloud/datacenter IP ranges outright, regardless of headers — so the
+importer instead runs *inside* the Mobalytics page itself, in your own
+browser, where it's just a normal page view:
 
-1. Go to the repo's **Actions** tab → **Import Mobalytics build** (in the
-   sidebar) → **Run workflow**.
-2. Paste the build guide's URL (e.g.
-   `https://mobalytics.gg/diablo-4/builds/necromancer-mages-necro-guide`) →
-   **Run workflow**.
+1. On the live site, drag the **"📥 Export D4 Build"** button to your
+   bookmarks bar.
+2. Open any Mobalytics D4 build guide in your browser, and click that
+   bookmark. It reads the page's own embedded build data (same-origin, no
+   fetch involved) and downloads a small `<slug>.json` fragment.
+3. Back on the live site, drop that file onto the "Add a build" box (or
+   click it to choose the file).
 
-That fetches the page (from GitHub's runner, not your browser — no CORS
-issues), extracts the priority data, commits the update to `web/data.js`
-on `main`, and — since the Pages deploy workflow watches `web/**` — the
-live site redeploys automatically a few seconds later. Re-running it
-against the same guide updates that build in place; a different guide adds
-a new one alongside what's already there. See `.github/workflows/import-build.yml`.
+The build now shows up in the build switcher. By default this only saves
+to that browser's `localStorage` — click **"Download data.js"** to export
+the full merged library (built-ins + everything you've imported) as a file
+you can commit to `web/data.js` to make it permanent and visible to
+everyone, e.g. via GitHub's own web-based "Upload files" page (no git
+required) or by asking whoever maintains the repo. Re-importing a build you
+already have updates it in place. See `web/bookmarklet.js` for the
+extraction logic (a browser-side port of `lib/buildReport.js`).
 
 ## CLI usage
 
@@ -59,16 +66,20 @@ node bin/cli.js --file fixtures/sample-page.html --variant 1
 
 `web/index.html` is a small interactive page: pick a **saved build** from
 the dropdown, pick a variant (e.g. "Early Game" vs. "End Game"), then expand
-a gear slot's card to see its affix / socket / tempering priority. It reads
-its data from `web/data.js`, which holds a *library* of builds — the page
-remembers (via `localStorage`, per-browser) which build you had open last.
+a gear slot's card to see its affix / socket / tempering priority. Builds
+come from two places, merged together (imported ones win on a name clash):
+`web/data.js` (built-in, shipped with the repo) and this browser's
+`localStorage` (added via the bookmarklet importer above). The page also
+remembers which build you had open last.
 
-The easiest way to add a build is the **Actions importer** above. You can
-also manage the library locally with `bin/generate-web-data.js`. Adding a build is
-matched by the guide's own Mobalytics slug, so running it again against the
-same guide **updates that build in place** instead of duplicating it —
-running it against a different guide **adds** a new one alongside what's
-already there:
+The easiest way to add a build is the **bookmarklet importer** above. You
+can also manage `web/data.js` directly with `bin/generate-web-data.js` if
+you're running it somewhere Mobalytics doesn't block (e.g. your own
+machine, not a datacenter/CI IP) — adding a build is matched by the
+guide's own Mobalytics slug, so running it again against the same guide
+**updates that build in place** instead of duplicating it, and running it
+against a different guide **adds** a new one alongside what's already
+there:
 
 ```sh
 # Add or update a build (fetches the URL)
